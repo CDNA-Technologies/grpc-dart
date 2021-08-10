@@ -343,23 +343,12 @@ class ClientCall<Q, R> implements Response {
     _stream!.terminate();
   }
 
-  /// If there's an error status then process it as a response error
-  void _checkForErrorStatus(Map<String, String> metadata) {
-    final status = metadata['grpc-status'];
-    final statusCode = int.parse(status ?? '0');
 
-    if (statusCode != 0) {
-      final messageMetadata = metadata['grpc-message'];
-      final message =
-          messageMetadata == null ? null : Uri.decodeFull(messageMetadata);
-
-      final statusDetails = metadata[_statusDetailsHeader];
-      _responseError(GrpcError.custom(
-          statusCode,
-          message,
-          statusDetails == null
-              ? const <GeneratedMessage>[]
-              : decodeStatusDetails(statusDetails)));
+  /// If there's an error status then process it as a response error.
+  void _checkForErrorStatus(Map<String, String> trailers) {
+    final error = grpcErrorDetailsFromTrailers(trailers);
+    if (error != null) {
+      _responseError(error);
     }
   }
 
