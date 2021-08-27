@@ -381,7 +381,10 @@ class ClientCall<Q, R> implements Response {
           'data': decodedData.toString(),
         });
         _responses.add(decodedData);
-        _hasReceivedResponses = true;
+
+        // Commenting this boolean to default to false.
+        // This is added so as to skip validating trailers after the data frame.
+        // _hasReceivedResponses = true;
       } catch (e, s) {
         _responseError(GrpcError.dataLoss('Error parsing response'), s);
       }
