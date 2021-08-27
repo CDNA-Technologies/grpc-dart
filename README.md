@@ -1,3 +1,11 @@
+# NOTICE
+
+## This version of grpc-dart is fixed at v3.0.0 as a workaround temporarily until the upstream proxy(nginx + envoy) issues with grpc-web is solved. Do not upgrade to any higher version without consulating flutter team.
+
+---
+
+## Description
+
 The [Dart](https://www.dart.dev/) implementation of
 [gRPC](https://grpc.io/): A high performance, open source, general RPC framework that puts mobile and HTTP/2 first.
 
