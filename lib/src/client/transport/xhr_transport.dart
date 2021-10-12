@@ -130,13 +130,17 @@ class XhrTransportStream implements GrpcTransportStream {
           StackTrace.current);
       return;
     }
-    if (!_checkContentType(contentType)) {
-      _onError(
-          GrpcError.unavailable('XhrConnection bad Content-Type $contentType',
-              null, _request.responseText),
-          StackTrace.current);
-      return;
-    }
+
+    // TODO: This is added as a workaround for CORS preflight issue in <=iOS12.4.
+    // This invalidates CORS policy between iOS webkit and envoyproxy.
+    //
+    // if (!_checkContentType(contentType)) {
+    //   _onError(
+    //       GrpcError.unavailable('XhrConnection bad Content-Type $contentType',
+    //           null, _request.responseText),
+    //       StackTrace.current);
+    //   return;
+    // }
     if (_request.response == null) {
       _onError(
           GrpcError.unavailable('XhrConnection request null response', null,
