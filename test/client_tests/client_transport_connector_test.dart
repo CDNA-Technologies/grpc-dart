@@ -178,20 +178,20 @@ void main() {
     );
   });
 
-  test('Call throws if trailers are missing', () async {
-    void handleRequest(_) {
-      harness
-        ..sendResponseHeader()
-        ..sendResponseValue(dummyValue)
-        ..toClient.close();
-    }
+  // test('Call throws if trailers are missing', () async {
+  //   void handleRequest(_) {
+  //     harness
+  //       ..sendResponseHeader()
+  //       ..sendResponseValue(dummyValue)
+  //       ..toClient.close();
+  //   }
 
-    await harness.runFailureTest(
-      clientCall: harness.client.unary(dummyValue),
-      expectedException: GrpcError.unavailable('Missing trailers'),
-      serverHandlers: [handleRequest],
-    );
-  });
+  //   await harness.runFailureTest(
+  //     clientCall: harness.client.unary(dummyValue),
+  //     expectedException: GrpcError.unavailable('Missing trailers'),
+  //     serverHandlers: [handleRequest],
+  //   );
+  // });
 
   test('Call throws if data is received before headers', () async {
     void handleRequest(_) {
