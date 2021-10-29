@@ -29,6 +29,11 @@ import '../generated/google/rpc/code.pbenum.dart';
 import '../generated/google/rpc/error_details.pb.dart';
 import '../generated/google/rpc/status.pb.dart';
 
+import '../generated/google/protobuf/any.pb.dart';
+import '../generated/google/rpc/code.pbenum.dart';
+import '../generated/google/rpc/error_details.pb.dart';
+import '../generated/google/rpc/status.pb.dart';
+
 class StatusCode {
   /// The operation completed successfully.
   static const ok = 0;
@@ -400,14 +405,16 @@ void validateHttpStatusAndContentType(
     // and use this information to report a better error to the application
     // layer. However prefer to use status code derived from HTTP status
     // if grpc-status itself does not provide an informative error.
-    final error = grpcErrorFromTrailers(headers);
+    final error = grpcErrorDetailsFromTrailers(headers);
     if (error == null || error.code == StatusCode.unknown) {
       throw GrpcError.custom(
-          status,
-          error?.message ??
-              'HTTP connection completed with ${httpStatus} instead of 200',
-          error?.details,
-          rawResponse);
+        status,
+        error?.message ??
+            'HTTP connection completed with ${httpStatus} instead of 200',
+        error?.details,
+        rawResponse,
+        error?.trailers ?? toCustomTrailers(headers),
+      );
     }
     throw error;
   }
@@ -424,7 +431,7 @@ void validateHttpStatusAndContentType(
   }
 }
 
-GrpcError? grpcErrorFromTrailers(Map<String, String> trailers) {
+GrpcError? grpcErrorDetailsFromTrailers(Map<String, String> trailers) {
   final status = trailers['grpc-status'];
   final statusCode = status != null ? int.parse(status) : StatusCode.unknown;
 
@@ -432,14 +439,25 @@ GrpcError? grpcErrorFromTrailers(Map<String, String> trailers) {
     final message = _tryDecodeStatusMessage(trailers['grpc-message']);
     final statusDetails = trailers[_statusDetailsHeader];
     return GrpcError.custom(
-        statusCode,
-        message,
-        statusDetails == null
-            ? const <GeneratedMessage>[]
-            : decodeStatusDetails(statusDetails));
+      statusCode,
+      message,
+      statusDetails == null
+          ? const <GeneratedMessage>[]
+          : decodeStatusDetails(statusDetails),
+      null,
+      toCustomTrailers(trailers),
+    );
   }
 
   return null;
+}
+
+Map<String, String> toCustomTrailers(Map<String, String> trailers) {
+  return Map.from(trailers)
+    ..remove(':status')
+    ..remove('content-type')
+    ..remove('grpc-status')
+    ..remove('grpc-message');
 }
 
 const _statusDetailsHeader = 'grpc-status-details-bin';
